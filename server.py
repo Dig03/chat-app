@@ -41,7 +41,22 @@ class Server:
             exclude = []
         for address in self.clients:
             if address not in exclude:
-                self.clients[address].send(message + '\n')
+                self.clients[address].send(message)
+
+    def _client_loop(self, client, address):
+        while True:
+            try:
+                data = client.recv(self.bufsize)
+                if data:
+                    formatted = "{}: {}".format(address, data.decode())
+                    print(formatted.strip())
+                    self._broadcast(formatted.encode(), [address])
+                else:
+                    raise socket.error("Client disconnected.")
+            except (socket.timeout, socket.error):
+                print("{} dropped.".format(address))
+                client.close()
+                return False
 
     def listen(self):
         self.sock.listen(self.max_connections)
@@ -51,22 +66,7 @@ class Server:
             print("Received connection from {}.".format(address))
             client.settimeout(self.timeout)
             self._register_client(client, address)
-            threading.Thread(target=self.client_loop, args=(client, address)).start()
-
-    def client_loop(self, client, address):
-        while True:
-            try:
-                data = client.recv(self.bufsize)
-                if data:
-                    formatted = "{}: {}".format(address, data)
-                    print(formatted)
-                    self._broadcast(formatted.encode(), [address])
-                else:
-                    raise socket.error("Client disconnected.")
-            except (socket.timeout, socket.error):
-                print("{} dropped.".format(address))
-                client.close()
-                return False
+            threading.Thread(target=self._client_loop, args=(client, address)).start()
 
 
 if __name__ == '__main__':
