@@ -15,11 +15,11 @@ class Server:
         bufsize: maximum buffer for a single received message
         timeout: time to wait (in seconds) for an operation on a client to complete
     """
-    def __init__(self, host, port, max_connections = 100, bufsize = 1024, timeout = 60):
+    def __init__(self, host, port, max_connections=100, buffer_size=1024, timeout=60):
         self.host = host
         self.port = port
         self.max_connections = max_connections
-        self.bufsize = bufsize
+        self.buffer_size = buffer_size
         self.timeout = timeout
         self.clients = {}
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -46,7 +46,7 @@ class Server:
     def _client_loop(self, client, address):
         while True:
             try:
-                data = client.recv(self.bufsize)
+                data = client.recv(self.buffer_size)
                 if data:
                     formatted = "{}: {}".format(address, data.decode())
                     print(formatted.strip())
