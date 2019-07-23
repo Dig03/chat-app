@@ -20,6 +20,7 @@ def main():
             clients.append(client_iface)
             messageClients(clients, "{} joined!".format(addr))
     except KeyboardInterrupt:
+		# needs threading, right now is blocked until new client connects -R
         iface.close()
 
 def messageClients(clients, message):
