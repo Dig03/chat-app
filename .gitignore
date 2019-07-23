@@ -1,0 +1,4 @@
+# ignore libraries and pycharm rubbish
+.idea/
+venv/
+__pycache__/
