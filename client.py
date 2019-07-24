@@ -1,25 +1,65 @@
+import json
 import socket
 import threading
+import os
 
 ADDRESS = ('localhost', 413)
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-def message_listener():
-    while True:
-        data = s.recv(1024)
-        if data:
-            print(data.decode())
 
-def main():
-    s.connect(ADDRESS)
-    threading.Thread(target=message_listener).start()
-    while True:
+class Client:
+
+    def __init__(self, host="localhost", port=413):
+        self.host = host
+        self.port = port
+
+    @staticmethod
+    def gen_configs():
         try:
-            s.send(input().encode())
-        except KeyboardInterrupt:
-            # needs threading, right now is blocked until new client connects -R
-            s.close()
+            os.makedirs("client")
+            print("Directory /client/ created to store local configs")
+        except FileExistsError:
+            print("Directory /client/ already exists, continuing...")
+        with open("client/config.cfg", "w+") as f:
+            f.write("preferred_nickname=boring person")
+            # more config options go here
+
+    @staticmethod
+    def generate_packet(ptype, payload=None):
+        p = {"type": ptype, "payload": payload}
+        return json.dumps(p).encode()
+
+    def startup(self):
+        if os.path.isfile('client/config.cfg'):
+            with open("client/config.cfg", "r") as f:
+                f.seek(0)
+                cfgs = {}
+                cfgs["preferred_nickname"] = f.readlines()[0].split("=")[1]
+        else:
+            print("Configs not present, generating now...")
+            self.gen_configs()
+            self.startup()
+        s.connect(ADDRESS)
+        s.send(self.generate_packet("client_cfg", cfgs))
+        print("Connection successful to {}".format(s.getsockname()))
+        threading.Thread(target=self.message_listener).start()
+
+    @staticmethod
+    def message_listener():
+        while True:
+            data = s.recv(1024).decode()
+            if data:
+                print(data)
+
+    def main(self):
+        self.startup()
+        while True:
+            try:
+                s.send(self.generate_packet("message", input()))
+            except KeyboardInterrupt:
+                # needs threading, right now is blocked until new client connects -R
+                s.close()
 
 
-main()
+Client(input("IP to connect to: ")).main()

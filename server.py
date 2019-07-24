@@ -1,5 +1,6 @@
 import socket
 import threading
+import json
 
 
 class Server:
@@ -44,13 +45,20 @@ class Server:
                 self.clients[address].send(message)
 
     def _client_loop(self, client, address):
+        client_cfg = {}
         while True:
             try:
-                data = client.recv(self.buffer_size)
+                data = json.loads(client.recv(self.buffer_size))
                 if data:
-                    formatted = "{}: {}".format(address, data.decode())
-                    print(formatted.strip())
-                    self._broadcast(formatted.encode(), [address])
+                    if data["type"] == "message":
+                        formatted = "{}: {}".format(client_cfg[client]["preferred_nickname"], data["payload"])
+                        print(formatted.strip())
+                        self._broadcast(formatted.encode(), [address])
+                    elif data["type"] == "client_cfg":
+                        client_cfg[client] = data["payload"]
+
+                    else:
+                        print("Ignored invalid packet from {}, type {}.".format(address, data["type"]))
                 else:
                     raise socket.error("Client disconnected.")
             except (socket.timeout, socket.error):
