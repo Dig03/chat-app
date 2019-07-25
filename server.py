@@ -3,7 +3,7 @@ import threading
 from protocol import PacketHandler
 
 # TODO: rewrite so threads are named and identifiable.
-# TODO:
+# TODO: make server more error robust (e.g. catch errors and report them but don't fail)
 
 
 class Server(PacketHandler):
