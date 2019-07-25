@@ -6,6 +6,7 @@ from protocol import PacketHandler
 # TODO: make server more error robust (e.g. catch errors and report them but don't fail)
 # TODO: change "kind" to "ptype"
 
+
 class Server(PacketHandler):
     """
     Relatively simple threaded chat server.
