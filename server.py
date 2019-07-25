@@ -1,8 +1,12 @@
 import socket
 import threading
+from protocol import PacketHandler
+
+# TODO: rewrite so threads are named and identifiable.
+# TODO:
 
 
-class Server:
+class Server(PacketHandler):
     """
     Relatively simple threaded chat server.
     """
@@ -22,13 +26,21 @@ class Server:
         self.max_connections = max_connections
         self.buffer_size = buffer_size
         self.timeout = timeout
+        # TODO: Merge the following two maps at some point.
         self.clients = {}
+        self.cfg_map = {}
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.sock.bind((host, port))
 
     def _register_client(self, client, address):
         self.clients[address] = client
+
+    # TODO: refactor this, slightly dirty implementation, might be best to roll it later
+    def _register_client_cfg(self, key, val, address):
+        if address not in self.cfg_map:
+            self.cfg_map[address] = {}
+        self.cfg_map[address][key] = val
 
     def _broadcast(self, message, exclude=None):
         """
@@ -46,17 +58,25 @@ class Server:
     def _client_loop(self, client, address):
         while True:
             try:
-                data = client.recv(self.buffer_size)
-                if data:
-                    formatted = "{}: {}".format(address, data.decode())
-                    print(formatted.strip())
-                    self._broadcast(formatted.encode(), [address])
+                packet = client.recv(self.buffer_size)
+                if packet:
+                    self.handle_packet(packet, address)
                 else:
                     raise socket.error("Client disconnected.")
             except (socket.timeout, socket.error):
                 print("{} dropped.".format(address))
                 client.close()
                 return False
+
+    def handle_message(self, data, address):
+        formatted = "{}: {}".format(self.cfg_map[address]["preferred_nickname"], data["body"])
+        print(formatted.strip())
+        self._broadcast(formatted.encode(), [address])
+
+    # TODO: this method of handling is probably a security concern, there should be specific
+    # configuration messages (to edit specific keys) we should implement this later.
+    def handle_config(self, data, address):
+        self.cfg_map[address] = data
 
     def listen(self):
         self.sock.listen(self.max_connections)

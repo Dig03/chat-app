@@ -2,13 +2,14 @@ import json
 import socket
 import threading
 import os
+from protocol import PacketBuilder
 
 ADDRESS = ('localhost', 413)
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 
-class Client:
+class Client(PacketBuilder):
 
     def __init__(self, host="localhost", port=413):
         self.host = host
@@ -27,9 +28,10 @@ class Client:
             f.write("preferred_nickname=boring person")
             # more config options go here
 
+    # TODO: rewrite this into dedicated protocol buiilder functions?
     @staticmethod
     def generate_packet(ptype, payload=None):
-        p = {"type": ptype, "payload": payload}
+        p = {"kind": ptype, "data": payload}
         return json.dumps(p).encode()
 
     def startup(self):
@@ -43,7 +45,7 @@ class Client:
             self.gen_configs()
             self.startup()
         s.connect(ADDRESS)
-        s.send(self.generate_packet("client_cfg", cfgs))
+        s.send(self.build_config(cfgs))
         print("Connection successful to {}".format(s.getsockname()))
         threading.Thread(target=self.message_listener).start()
 
@@ -58,7 +60,7 @@ class Client:
         self.startup()
         while True:
             try:
-                s.send(self.generate_packet("message", input()))
+                s.send(self.build_message(input()))
             except KeyboardInterrupt:
                 # needs threading, right now is blocked until new client connects -R
                 s.close()
