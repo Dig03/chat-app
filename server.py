@@ -4,7 +4,7 @@ from protocol import PacketHandler
 
 # TODO: rewrite so threads are named and identifiable.
 # TODO: make server more error robust (e.g. catch errors and report them but don't fail)
-
+# TODO: change "kind" to "ptype"
 
 class Server(PacketHandler):
     """
