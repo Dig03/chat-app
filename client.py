@@ -14,6 +14,8 @@ class Client:
         self.host = host
         self.port = port
 
+    # TODO: use JSON config instead? looks pretty good otherwise
+
     @staticmethod
     def gen_configs():
         try:

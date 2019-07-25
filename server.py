@@ -44,6 +44,8 @@ class Server:
             if address not in exclude:
                 self.clients[address].send(message)
 
+    # TODO: split code off into packet handlers so functions remain individually small
+
     def _client_loop(self, client, address):
         client_cfg = {}
         while True:
