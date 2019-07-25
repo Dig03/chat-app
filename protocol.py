@@ -26,6 +26,8 @@ class PacketHandler:
         """
         raise NotImplementedError("Please implement this method.")
 
+    def handle_
+
     def handle_packet(self, packet):
         """
         Our "Packets" could have a form like:
