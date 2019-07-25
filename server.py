@@ -8,15 +8,16 @@ class Server:
     Relatively simple threaded chat server.
     """
 
-    """
-    Arguments:
-        host: interface IP for server to bind to
-        port: port to bind to
-        max_connections: maximum number of possible accepted connections
-        bufsize: maximum buffer for a single received message
-        timeout: time to wait (in seconds) for an operation on a client to complete
-    """
     def __init__(self, host, port, max_connections=100, buffer_size=1024, timeout=60):
+        """
+        Construct a Server.
+
+        :param host: interface IP to bind to
+        :param port: port to bind to
+        :param max_connections: maximum number of concurrent connections
+        :param buffer_size: maximum buffer for a single received message
+        :param timeout: time to wait (in seconds) for an operation on a client to complete
+        """
         self.host = host
         self.port = port
         self.max_connections = max_connections
@@ -30,14 +31,13 @@ class Server:
     def _register_client(self, client, address):
         self.clients[address] = client
 
-    """
-    Transmit a message to all clients except those in exclude.
-    
-    Arguments:
-        message: bytes object to broadcast.
-        exclude: a list of addresses to not broadcast to.
-    """
     def _broadcast(self, message, exclude=None):
+        """
+        Transmit a message to all clients except those in exclude.
+
+        :param message: bytes object to broadcast.
+        :param exclude: list of addresses to not broadcast to.
+        """
         if exclude is None:
             exclude = []
         for address in self.clients:
